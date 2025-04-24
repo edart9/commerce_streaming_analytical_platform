@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+    kafka:
+        image: apache/kafka:3.9.0
+        container_name: kafka
+        ports:
+            - "9094:9094" # puerto público para conectarte desde tu máquina
+        environment:
+            # Roles del nodo Kafka
+
+            KAFKA_NODE_ID: 1
+            KAFKA_PROCESS_ROLES: broker,controller
+
+            # Escucha en interfaces internas y externas
+            KAFKA_LISTENERS: >
+                INTERNAL_LISTENER://kafka:9092, CONTROLLER://localhost:9093, EXTERNAL_LISTENER://0.0.0.0:9094
+
+            # Lo que Kafka anuncia a los clientes para que se conecten
+            KAFKA_ADVERTISED_LISTENERS: >
+                INTERNAL_LISTENER://kafka:9092, EXTERNAL_LISTENER://localhost:9094
+
+            # Asignar protocolos a cada listener
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >
+                CONTROLLER:PLAINTEXT, INTERNAL_LISTENER:PLAINTEXT, EXTERNAL_LISTENER:PLAINTEXT
+
+            # Quorum del controller (modo KRaft)
+            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+            KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+            KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL_LISTENER
+
+            # Configuración general
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+            KAFKA_NUM_PARTITIONS: 3
+            CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
+
+        volumes:
+            - ./data:/var/lib/kafka/data
+
+    simulator:
+        build:
+            context: ./ecommerce_simulator
+        env_file:
+            - .env
+        container_name: simulator
+        depends_on:
+            - kafka
+        command: [ "python", "run_simulator.py" ]
+networks:
+    kafka-net:
+        driver: bridge
