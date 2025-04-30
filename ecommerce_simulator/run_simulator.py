@@ -31,18 +31,19 @@ kafka_config = {
 def ensure_topic_exists():
     topic_name = KAFKA_TOPIC
     admin_client = AdminClient(kafka_config)
-    metadata = admin_client.list_topics(timeout=5)
-    if topic_name not in metadata.topics:
-        logger.info(f"Creando topic: {topic_name}")
-        topic = NewTopic(topic=topic_name, num_partitions=1, replication_factor=1)
-        creation = admin_client.create_topics([topic])
+    for i in range (5):
         try:
-            creation[topic_name].result()
-            logger.success(f"Topic {topic_name} creado correctamente.")
+            metadata = admin_client.list_topics(timeout=5)
+            if topic_name not in metadata.topics:
+                logger.info(f"Creando topic: {topic_name}")
+                topic = NewTopic(topic=topic_name, num_partitions=1, replication_factor=1)
+                admin_client.create_topics([topic])
+                logger.info(f'topic creado {topic}')
+                return
         except Exception as e:
             logger.error(f"Error creando topic: {e}")
-    else:
-        logger.info(f"Topic {topic_name} ya existe.")
+            time.sleep(5)
+    raise RuntimeError("❌ No se pudo conectar con Kafka luego de varios intentos.")
 
 # ✅ Callback para logs de envío
 def log_callback(err, msg):
@@ -79,7 +80,8 @@ def run_simulator():
                 key=day_key,
                 callback=log_callback
             )
-            time.sleep(0.2)
+            time.sleep(2)
+            producer.poll(0)
     except KeyboardInterrupt:
         logger.warning("Simulación detenida por teclado.")
     finally:
