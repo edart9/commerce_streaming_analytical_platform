@@ -1,4 +1,4 @@
 *.csv
-.env
+*.env
 **/__pycache__/*
 ecommerce_simulator/data/

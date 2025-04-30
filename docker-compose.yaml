@@ -37,14 +37,11 @@ services:
             KAFKA_NUM_PARTITIONS: 3
             CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
 
-        volumes:
-            - ./data:/var/lib/kafka/data
-
     simulator:
         build:
             context: ./ecommerce_simulator
         env_file:
-            - .env
+            - ./ecommerce_simulator/.env
         container_name: simulator
         depends_on:
             - kafka
