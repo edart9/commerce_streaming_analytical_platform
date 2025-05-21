@@ -37,6 +37,21 @@ services:
             KAFKA_NUM_PARTITIONS: 3
             CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
 
+    flink_job:
+        build:
+            context: ./consumer_flink
+        image: pyflink-job
+        container_name: pyflink-job
+        depends_on:
+            - kafka
+        environment:
+            # Indica a tu script que use este broker interno:
+            - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+            - PYTHONUNBUFFERED=1
+        networks:
+            - kafka-net
+        command: [ "python", "flink_kafka_testing.py" ]
+
     simulator:
         build:
             context: ./ecommerce_simulator

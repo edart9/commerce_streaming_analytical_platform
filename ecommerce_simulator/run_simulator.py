@@ -49,7 +49,7 @@ def ensure_topic_exists():
 def log_callback(err, msg):
     if err:
         logger.error(f"❌ Error al enviar evento: {err}")
-    else:
+    else: 
         logger.success(f"✅ Evento enviado: {msg.value()}")
 
 # ✅ Enviar eventos
