@@ -45,8 +45,3 @@ table=table_env.from_path('ecommerce')
 print ('\nSource Schema')
 table.print_schema()
 table_env.execute_sql("SELECT * FROM ecommerce").print()
-
-# #Calculation
-# sql="""
-#     select 
-# """
