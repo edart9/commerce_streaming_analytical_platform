@@ -40,8 +40,33 @@ source="""
             'format'='json'
         )
 """
-table_env.execute_sql(source)
-table=table_env.from_path('ecommerce')
-print ('\nSource Schema')
-table.print_schema()
-table_env.execute_sql("SELECT * FROM ecommerce").print()
+# Execute and confirm
+try:
+    table_env.execute_sql(source)
+    print("✅ Source table created")
+except Exception as e:
+    print("❌ Table creation failed:", e)
+
+# Skip from_path() unless you need Table API access
+query = """
+SELECT *
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY window_start ORDER BY total_revenue DESC) AS rownum
+    FROM (
+        SELECT
+            TUMBLE_START(proctime, INTERVAL '1' MINUTE) AS window_start,
+            brand,
+            product_id,
+            SUM(price) AS total_revenue
+        FROM ecommerce
+        WHERE event_type = 'purchase'
+        GROUP BY TUMBLE(proctime, INTERVAL '1' MINUTE), brand, product_id
+    )
+)
+WHERE rownum <= 5
+"""
+
+# Execute SQL query
+print("✅ Executing query:")
+table_env.execute_sql(query).print()
