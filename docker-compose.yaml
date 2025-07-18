@@ -24,47 +24,41 @@ services:
             CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
         networks:
             - project-net
-    flink_jobmanager:
+    flinkjobmanager:
         build: flink_cluster
         container_name: flink_jobmanager
-        hostname: jobmanager
         ports:
-            - "8082:8082"
+            - "8081:8081"
         command: jobmanager
         environment:
             - |
               FLINK_PROPERTIES=
-              jobmanager.rpc.address: flink_jobmanager
-              rest.address: jobmanager
-              rest.port: 8082
+              jobmanager.rpc.address: flinkjobmanager
               parallelism.default: 2
         networks:
             - project-net
-    flink_taskmanager:
+    flinktaskmanager:
         build: flink_cluster
-        hostname: taskmanager
         depends_on:
-            - flink_jobmanager
+            - flinkjobmanager
         command: taskmanager
         deploy:
             replicas: 3
         environment:
             - |
               FLINK_PROPERTIES=
-              jobmanager.rpc.address: flink_jobmanager
-              taskmanager.numberOfTaskSlots: 6 
+              jobmanager.rpc.address: flinkjobmanager
               parallelism.default: 2
         networks:
             - project-net
-    flink_job:
+    flinkjob:
         build: consumer_flink
-        container_name: pyflink-job
         depends_on:
-            - flink_jobmanager
+            - flinkjobmanager
         environment:
             - |
               FLINK_PROPERTIES=
-              jobmanager.rpc.address: flink_jobmanager
+              jobmanager.rpc.address: flinkjobmanager
         networks:
             - project-net
         tty: true
