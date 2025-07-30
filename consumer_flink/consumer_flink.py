@@ -1,7 +1,8 @@
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.table import StreamTableEnvironment,EnvironmentSettings
 import os
-
+ 
+#/opt/flink/bin/flink run --jobmanager flinkjobmanager:8081 --python /consumer_flink/consumer_flink.py
 
 env=StreamExecutionEnvironment.get_execution_environment()
 settings=EnvironmentSettings.new_instance()\
@@ -18,7 +19,7 @@ print(table_env)
 
 
 
-source="""
+table_env.execute_sql("""
         CREATE TABLE ecommerce(
             event_time TIMESTAMP(3),
             event_type varchar,
@@ -39,20 +40,32 @@ source="""
             'scan.startup.mode' = 'earliest-offset',
             'format'='json'
         )
-"""
+""")
+table_env.execute_sql("""
+CREATE TABLE postgres_sink (
+    event_time TIMESTAMP(3),
+    event_type STRING,
+    product_id BIGINT,
+    category_id BIGINT,
+    category_code STRING,
+    brand STRING,
+    price DOUBLE,
+    user_id BIGINT,
+    user_session STRING,
+    ip STRING,
+    proctime TIMESTAMP(3)
+) WITH (
+    'connector' = 'jdbc',
+    'url' = 'jdbc:postgresql://postgres:5432/ecommercedb',
+    'table-name' = 'replica.t_ecommerce_events',
+    'driver' = 'org.postgresql.Driver',
+    'username' = 'aratae',
+    'password' = 'Dexter121118,'
+)
+""")
 
-try:
-    table_env.execute_sql(source)
-    print("✅ Source table created")
-except Exception as e:
-    print("❌ Table creation failed:", e)
 
-
-query = """
-SELECT *
-FROM ecommerce
-"""
-
-
-print("✅ Executing query:")
-table_env.execute_sql(query).print()
+table_env.execute_sql("""
+INSERT INTO postgres_sink
+SELECT * FROM ecommerce
+""")

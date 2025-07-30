@@ -67,19 +67,21 @@ services:
             - ./consumer_flink:/consumer_flink
         command: [ "bash" ]
 
-    # postgres:
-    #     image: postgres:16
-    #     container_name: my-postgres
-    #     restart: always
-    #     environment:
-    #     POSTGRES_DB: mydb
-    #     POSTGRES_USER: myuser
-    #     POSTGRES_PASSWORD: mypassword
-    #     ports:
-    #         - "5432:5432"
-    #     volumes:
-    #         - ./init:/docker-entrypoint-initdb.d
-    #         - pgdata:/var/lib/postgresql/data
+    postgres:
+        image: postgres:16
+        container_name: postgres
+        restart: always
+        environment:
+            POSTGRES_DB: ecommercedb
+            POSTGRES_USER: aratae
+            POSTGRES_PASSWORD: Dexter121118,
+        networks:
+            - project-net
+        ports:
+            - "5432:5432"
+        volumes:
+            - ./postgres/init:/docker-entrypoint-initdb.d
+            - /var/lib/postgresql/data
 
     simulator:
         build:
